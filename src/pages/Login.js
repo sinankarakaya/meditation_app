@@ -20,6 +20,20 @@ import auth from '@react-native-firebase/auth';
 function Login(props) {
   const [loginForm, setLoginForm] = useState({email: '', password: ''});
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    auth().onAuthStateChanged(onAuthStateChanged);
+  }, []);
+
+  function onAuthStateChanged(user) {
+    if (initializing) setInitializing(false);
+    setLoading(false);
+    if (user.email) {
+      props.navigation.navigate('Main');
+    }
+  }
 
   function onChangeForm(key, value) {
     setLoginForm({...loginForm, [key]: value});
@@ -104,21 +118,36 @@ function Login(props) {
             />
           </View>
           <View style={{marginTop: 20, width: '100%'}}>
-            <TouchableOpacity
-              onPress={() => handleLogin()}
-              style={{
-                borderWidth: 1,
-                borderColor: 'rgba(173, 186, 200, 0.4)',
-                height: 50,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#0857AB',
-                borderRadius: 5,
-              }}>
-              <Text style={{fontSize: 12, fontWeight: '700', color: '#fff'}}>
-                Giriş Yap
-              </Text>
-            </TouchableOpacity>
+            {loading ? (
+              <TouchableOpacity
+                style={{
+                  borderWidth: 1,
+                  borderColor: 'rgba(173, 186, 200, 0.4)',
+                  height: 50,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#0857AB',
+                  borderRadius: 5,
+                }}>
+                <ActivityIndicator size="small" color="#fff" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => handleLogin()}
+                style={{
+                  borderWidth: 1,
+                  borderColor: 'rgba(173, 186, 200, 0.4)',
+                  height: 50,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#0857AB',
+                  borderRadius: 5,
+                }}>
+                <Text style={{fontSize: 12, fontWeight: '700', color: '#fff'}}>
+                  Giriş Yap
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </>

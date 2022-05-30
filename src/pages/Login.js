@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,13 @@ import {Icon} from 'native-base';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import auth from '@react-native-firebase/auth';
+import {UserContext} from '../provider/UserProvider';
 
 function Login(props) {
   const [loginForm, setLoginForm] = useState({email: '', password: ''});
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const {setUser} = useContext(UserContext);
 
   useEffect(() => {
     setLoading(true);
@@ -30,7 +32,8 @@ function Login(props) {
   function onAuthStateChanged(user) {
     if (initializing) setInitializing(false);
     setLoading(false);
-    if (user.email) {
+    if (user && user.email) {
+      setUser(user);
       props.navigation.navigate('Main');
     }
   }

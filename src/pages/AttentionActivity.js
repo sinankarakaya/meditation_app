@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
   View,
   ScrollView,
@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   StatusBar,
   ActivityIndicator,
-  ImageBackground,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components';
 import Slider from '@react-native-community/slider';
 import PlayButton from '../component/PlayButton';
 import TrackPlayer, {useProgress} from 'react-native-track-player';
+import {UserContext} from '../provider/UserProvider';
+import firestore from '@react-native-firebase/firestore';
 
 const track = {
   url: require('../music/piano.mp3'),
@@ -23,23 +25,32 @@ const track = {
   duration: 238,
 };
 
+const session = {
+  duration: 135,
+  type: 'attention',
+  data: [
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+  ],
+};
+
 function AttentionActivity(props) {
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const progress = useProgress();
+  const {user} = useContext(UserContext);
 
   useEffect(() => {
-    TrackPlayer.setupPlayer().then(() => {
-      setLoading(false);
-      TrackPlayer.add([track]).then(() => {
-        setPlaying(true);
-        TrackPlayer.play();
-      });
-    });
+    Alert.alert('Attention Activity', 'Start the session?', [
+      {text: 'Yes', onPress: () => startSession()},
+      {text: 'No', onPress: () => props.navigation.pop()},
+    ]);
     return () => {
-      TrackPlayer.stop().then(() => {
-        setPlaying(false);
-      });
+      stopSession();
     };
   }, []);
 
@@ -51,19 +62,42 @@ function AttentionActivity(props) {
     }
   }, [progress.position]);
 
+  function startSession() {
+    TrackPlayer.setupPlayer().then(() => {
+      setLoading(false);
+      TrackPlayer.add([track]).then(() => {
+        setPlaying(true);
+        TrackPlayer.play();
+      });
+    });
+  }
+
+  function stopSession() {
+    uploadData();
+    TrackPlayer.stop().then(() => {
+      setPlaying(false);
+    });
+  }
+
+  function uploadData() {
+    const attentionCollection = firestore().collection('attentioanActivity');
+    attentionCollection
+      .doc(user.uid)
+      .add(session)
+      .then(() => {
+        console.log('data sended');
+      });
+  }
+
   function fancyTimeFormat(duration) {
-    // Hours, minutes and seconds
     var hrs = ~~(duration / 3600);
     var mins = ~~((duration % 3600) / 60);
     var secs = ~~duration % 60;
 
-    // Output like "1:01" or "4:03:59" or "123:03:59"
     var ret = '';
-
     if (hrs > 0) {
       ret += '' + hrs + ':' + (mins < 10 ? '0' : '');
     }
-
     ret += '' + mins + ':' + (secs < 10 ? '0' : '');
     ret += '' + secs;
     return ret;

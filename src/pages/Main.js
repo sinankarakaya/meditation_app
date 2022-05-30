@@ -14,7 +14,7 @@ function Main(props) {
             Let’s make this day productive
           </Text>
         </View>
-        <View
+        <TouchableOpacity
           style={{
             marginTop: 45,
             flex: 0.5,
@@ -32,7 +32,7 @@ function Main(props) {
               style={{width: 36, height: 36}}
             />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   }

@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components';
@@ -27,17 +28,12 @@ function StressActivity(props) {
   const progress = useProgress();
 
   useEffect(() => {
-    TrackPlayer.setupPlayer().then(() => {
-      setLoading(false);
-      TrackPlayer.add([track]).then(() => {
-        setPlaying(true);
-        TrackPlayer.play();
-      });
-    });
+    Alert.alert('Stress Activity', 'Start the session?', [
+      {text: 'Yes', onPress: () => startSession()},
+      {text: 'No', onPress: () => props.navigation.pop()},
+    ]);
     return () => {
-      TrackPlayer.stop().then(() => {
-        setPlaying(false);
-      });
+      stopSession();
     };
   }, []);
 
@@ -49,19 +45,31 @@ function StressActivity(props) {
     }
   }, [progress.position]);
 
+  function startSession() {
+    TrackPlayer.setupPlayer().then(() => {
+      setLoading(false);
+      TrackPlayer.add([track]).then(() => {
+        setPlaying(true);
+        TrackPlayer.play();
+      });
+    });
+  }
+
+  function stopSession() {
+    TrackPlayer.stop().then(() => {
+      setPlaying(false);
+    });
+  }
+
   function fancyTimeFormat(duration) {
-    // Hours, minutes and seconds
     var hrs = ~~(duration / 3600);
     var mins = ~~((duration % 3600) / 60);
     var secs = ~~duration % 60;
 
-    // Output like "1:01" or "4:03:59" or "123:03:59"
     var ret = '';
-
     if (hrs > 0) {
       ret += '' + hrs + ':' + (mins < 10 ? '0' : '');
     }
-
     ret += '' + mins + ':' + (secs < 10 ? '0' : '');
     ret += '' + secs;
     return ret;

@@ -9,30 +9,34 @@ import Main from './src/pages/Main';
 import AttentionActivity from './src/pages/AttentionActivity';
 import StressActivity from './src/pages/StressActivity';
 import SearchDevice from './src/pages/SearchDevice';
+import UserProvider from './src/provider/UserProvider';
+import {Use} from 'react-native-svg';
 
 function App(props) {
   const Stack = createNativeStackNavigator();
 
   return (
-    <SafeAreaProvider>
-      <NativeBaseProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName="Login"
-            screenOptions={{headerShown: false}}>
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="Register" component={Register} />
-            <Stack.Screen name="Main" component={Main} />
-            <Stack.Screen
-              name="AttentionActivity"
-              component={AttentionActivity}
-            />
-            <Stack.Screen name="StressActivity" component={StressActivity} />
-            <Stack.Screen name="SearchDevice" component={SearchDevice} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </NativeBaseProvider>
-    </SafeAreaProvider>
+    <UserProvider>
+      <SafeAreaProvider>
+        <NativeBaseProvider>
+          <NavigationContainer>
+            <Stack.Navigator
+              initialRouteName="Login"
+              screenOptions={{headerShown: false}}>
+              <Stack.Screen name="Login" component={Login} />
+              <Stack.Screen name="Register" component={Register} />
+              <Stack.Screen name="Main" component={Main} />
+              <Stack.Screen
+                name="AttentionActivity"
+                component={AttentionActivity}
+              />
+              <Stack.Screen name="StressActivity" component={StressActivity} />
+              <Stack.Screen name="SearchDevice" component={SearchDevice} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </NativeBaseProvider>
+      </SafeAreaProvider>
+    </UserProvider>
   );
 }
 

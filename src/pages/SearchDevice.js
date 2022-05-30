@@ -1,9 +1,48 @@
-import React from 'react';
-import {View, StatusBar, Image, TouchableOpacity, Text} from 'react-native';
+import React, {useEffect} from 'react';
+import {
+  View,
+  StatusBar,
+  Image,
+  TouchableOpacity,
+  Text,
+  NativeAppEventEmitter,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components';
+import BleManager from 'react-native-ble-manager';
 
 function SearchDevice(props) {
+  useEffect(() => {
+    startBluetooth();
+  }, []);
+
+  function startBluetooth() {
+    BleManager.start({showAlert: false}).then(() => {
+      console.log('Module initialized');
+      scanStart();
+      setTimeout(() => scanStop(), 15000);
+    });
+  }
+
+  const scanStart = () => {
+    BleManager.scan([], 5, true).then(() => {
+      console.log('Scan started');
+    });
+  };
+
+  const scanStop = () => {
+    BleManager.stopScan().then(() => {
+      console.log('Scan stopped');
+      getDiscoveredDevice();
+    });
+  };
+
+  const getDiscoveredDevice = () => {
+    BleManager.getDiscoveredPeripherals([]).then(peripheralsArray => {
+      console.log(peripheralsArray);
+    });
+  };
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#1A0938'}}>
       <StatusBar barStyle="light-content" />

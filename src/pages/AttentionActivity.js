@@ -82,8 +82,7 @@ function AttentionActivity(props) {
   function uploadData() {
     const attentionCollection = firestore().collection('attentioanActivity');
     attentionCollection
-      .doc(user.uid)
-      .add(session)
+      .add({user: user.uid, session: session, date: new Date()})
       .then(() => {
         console.log('data sended');
       });

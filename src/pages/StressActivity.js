@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
   ActivityIndicator,
@@ -13,6 +13,8 @@ import styled from 'styled-components';
 import Slider from '@react-native-community/slider';
 import PlayButton from '../component/PlayButton';
 import TrackPlayer, {useProgress} from 'react-native-track-player';
+import {UserContext} from '../provider/UserProvider';
+import firestore from '@react-native-firebase/firestore';
 
 const track = {
   url: require('../music/piano.mp3'),
@@ -22,10 +24,24 @@ const track = {
   duration: 238,
 };
 
+const session = {
+  duration: 135,
+  type: 'stress',
+  data: [
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+    {id: 12, time: '123'},
+  ],
+};
+
 function StressActivity(props) {
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const progress = useProgress();
+  const {user} = useContext(UserContext);
 
   useEffect(() => {
     Alert.alert('Stress Activity', 'Start the session?', [
@@ -56,9 +72,19 @@ function StressActivity(props) {
   }
 
   function stopSession() {
+    uploadData();
     TrackPlayer.stop().then(() => {
       setPlaying(false);
     });
+  }
+
+  function uploadData() {
+    const attentionCollection = firestore().collection('stressActivity');
+    attentionCollection
+      .add({user: user.uid, session: session, date: new Date()})
+      .then(() => {
+        console.log('data sended');
+      });
   }
 
   function fancyTimeFormat(duration) {

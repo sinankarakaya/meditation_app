@@ -10,7 +10,7 @@ import AttentionActivity from './src/pages/AttentionActivity';
 import StressActivity from './src/pages/StressActivity';
 import SearchDevice from './src/pages/SearchDevice';
 import UserProvider from './src/provider/UserProvider';
-import {Use} from 'react-native-svg';
+import History from './src/pages/History';
 
 function App(props) {
   const Stack = createNativeStackNavigator();
@@ -32,6 +32,7 @@ function App(props) {
               />
               <Stack.Screen name="StressActivity" component={StressActivity} />
               <Stack.Screen name="SearchDevice" component={SearchDevice} />
+              <Stack.Screen name="History" component={History} />
             </Stack.Navigator>
           </NavigationContainer>
         </NativeBaseProvider>

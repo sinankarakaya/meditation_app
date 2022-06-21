@@ -9,39 +9,27 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components';
-import BleManager from 'react-native-ble-manager';
+import {BleManager} from 'react-native-ble-plx';
 
 function SearchDevice(props) {
+  const manager = new BleManager();
+
   useEffect(() => {
-    startBluetooth();
+    return () => {
+      manager.destroy();
+    };
   }, []);
 
-  function startBluetooth() {
-    BleManager.start({showAlert: false}).then(() => {
-      console.log('Module initialized');
-      scanStart();
-      setTimeout(() => scanStop(), 15000);
-    });
-  }
-
   const scanStart = () => {
-    BleManager.scan([], 5, true).then(() => {
-      console.log('Scan started');
+    manager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        return;
+      }
+      console.log(device.name);
     });
   };
 
-  const scanStop = () => {
-    BleManager.stopScan().then(() => {
-      console.log('Scan stopped');
-      getDiscoveredDevice();
-    });
-  };
-
-  const getDiscoveredDevice = () => {
-    BleManager.getDiscoveredPeripherals([]).then(peripheralsArray => {
-      console.log(peripheralsArray);
-    });
-  };
+  const scanStop = () => {};
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#1A0938'}}>
@@ -56,7 +44,7 @@ function SearchDevice(props) {
         </TouchableOpacity>
       </HeaderSection>
       <ContainerSection>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => scanStart()}>
           <Image
             source={require('../images/searching.png')}
             style={{height: 128, width: 128}}

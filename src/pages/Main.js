@@ -1,8 +1,20 @@
 import React from 'react';
 import {View, ScrollView, Text, Image, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import auth from '@react-native-firebase/auth';
 
 function Main(props) {
+  function logoutHandle() {
+    auth()
+      .signOut()
+      .then(() => {
+        props.navigation.reset({
+          index: 0,
+          routes: [{name: 'Login'}],
+        });
+      });
+  }
+
   function renderHeader() {
     return (
       <View style={{flexDirection: 'row'}}>
@@ -15,6 +27,7 @@ function Main(props) {
           </Text>
         </View>
         <TouchableOpacity
+          onPress={() => props.navigation.push('History')}
           style={{
             marginTop: 45,
             flex: 0.5,
@@ -28,7 +41,7 @@ function Main(props) {
               alignItems: 'flex-end',
             }}>
             <Image
-              source={require('../images/person.png')}
+              source={require('../images/history.png')}
               style={{width: 36, height: 36}}
             />
           </View>
@@ -112,14 +125,19 @@ function Main(props) {
             Device
           </Text>
         </View>
-        <View style={{flexDirection: 'column'}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            marginTop: 20,
+          }}>
           <TouchableOpacity
             onPress={() => props.navigation.navigate('SearchDevice')}
             style={{
               backgroundColor: '#F7F9FC',
-              height: 125,
-              borderRadius: 15,
-              marginTop: 15,
+              height: 150,
+              width: '45%',
+              borderRadius: 14,
               justifyContent: 'center',
               alignItems: 'center',
             }}>
@@ -140,9 +158,9 @@ function Main(props) {
           <TouchableOpacity
             style={{
               backgroundColor: '#F7F9FC',
-              height: 125,
-              borderRadius: 15,
-              marginTop: 15,
+              height: 150,
+              width: '45%',
+              borderRadius: 14,
               justifyContent: 'center',
               alignItems: 'center',
             }}>
@@ -165,6 +183,26 @@ function Main(props) {
     );
   }
 
+  function renderLogout() {
+    return (
+      <View style={{marginTop: 45, flex: 1}}>
+        <TouchableOpacity
+          onPress={() => logoutHandle()}
+          style={{
+            height: 54,
+            backgroundColor: '#F2F2F2',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 14,
+          }}>
+          <Text style={{color: '#121D59', fontSize: 13, fontWeight: 'bold'}}>
+            Çıkış Yap
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#FFF'}}>
       <ScrollView
@@ -173,6 +211,7 @@ function Main(props) {
         {renderHeader()}
         {renderActions()}
         {renderDevices()}
+        {renderLogout()}
       </ScrollView>
     </SafeAreaView>
   );

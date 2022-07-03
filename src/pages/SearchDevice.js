@@ -1,48 +1,141 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   StatusBar,
   Image,
   TouchableOpacity,
   Text,
-  NativeAppEventEmitter,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components';
 import {BleManager} from 'react-native-ble-plx';
 
 function SearchDevice(props) {
-  const manager = new BleManager();
+  const bleManager = new BleManager();
+  const [deviceList, setDeviceList] = useState([]);
 
   useEffect(() => {
     return () => {
-      manager.destroy();
+      bleManager.stopDeviceScan();
+      bleManager.destroy();
     };
   }, []);
 
   const scanStart = () => {
-    manager.startDeviceScan(null, null, (error, device) => {
-      if (error) {
-        return;
+    bleManager.startDeviceScan([], null, (error, device) => {
+      if (device?.name || device?.localName) {
+        let onNewDevice = {name: device.name ?? '', id: device.id ?? ''};
+        if (deviceList.indexOf(onNewDevice) < 0) {
+          let newDeviceList = JSON.parse(JSON.stringify(deviceList));
+          newDeviceList.push(onNewDevice);
+          setDeviceList(newDeviceList);
+        }
+        console.log('new DEVICE = ', onNewDevice);
       }
-      console.log(device.name);
     });
   };
 
-  const scanStop = () => {};
+  const scanStop = () => {
+    bleManager.stopDeviceScan();
+  };
 
-  return (
-    <SafeAreaView style={{flex: 1, backgroundColor: '#1A0938'}}>
-      <StatusBar barStyle="light-content" />
-      {/* Header Section */}
-      <HeaderSection>
-        <TouchableOpacity onPress={() => props.navigation.goBack()}>
-          <Image source={require('../images/left.png')} />
+  const handleConnectDevice = item => {};
+
+  const connectDevice = item => {
+    Alert.alert('Warning', 'Connect to ' + item.name + ' ?', [
+      {text: 'Yes', onPress: () => handleConnectDevice(item)},
+      {text: 'No', onPress: () => console.log('cancel')},
+    ]);
+  };
+
+  const renderDevices = () => {
+    return deviceList.map(item => {
+      return (
+        <TouchableOpacity
+          onPress={() => connectDevice(item)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            flexDirection: 'row',
+            borderWidth: 1,
+            borderColor: '#fff',
+            borderRadius: 10,
+            padding: 10,
+          }}>
+          <View>
+            <Image
+              source={require('../images/bluetooth.png')}
+              style={{height: 48, width: 48}}
+            />
+          </View>
+          <View
+            style={{
+              marginLeft: 30,
+            }}>
+            <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 21}}>
+              {item.name}
+            </Text>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Image source={require('../images/more.png')} />
-        </TouchableOpacity>
-      </HeaderSection>
+      );
+    });
+  };
+
+  const renderDeviceExist = () => {
+    return (
+      <DeviceListSection>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '100%',
+            paddingLeft: 10,
+            paddingRight: 10,
+            alignItems: 'center',
+          }}>
+          <Text
+            style={{
+              color: '#ED1BA3',
+              fontSize: 24,
+              fontWeight: '900',
+            }}>
+            Device List
+          </Text>
+          <TouchableOpacity
+            onPress={() => scanStop()}
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}>
+            <Text
+              style={{
+                color: '#FFF',
+                fontSize: 18,
+                fontWeight: '900',
+                marginLeft: 12,
+              }}>
+              Stop Scan
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View
+          style={{
+            marginTop: 16,
+            width: '100%',
+            paddingLeft: 10,
+            paddingRight: 10,
+          }}>
+          {renderDevices()}
+        </View>
+      </DeviceListSection>
+    );
+  };
+
+  const renderDeviceNotExist = () => {
+    return (
       <ContainerSection>
         <TouchableOpacity onPress={() => scanStart()}>
           <Image
@@ -69,6 +162,19 @@ function SearchDevice(props) {
           The device will pair automatically when found
         </Text>
       </ContainerSection>
+    );
+  };
+
+  return (
+    <SafeAreaView style={{flex: 1, backgroundColor: '#1A0938'}}>
+      <StatusBar barStyle="light-content" />
+      {/* Header Section */}
+      <HeaderSection>
+        <TouchableOpacity onPress={() => props.navigation.goBack()}>
+          <Image source={require('../images/left.png')} />
+        </TouchableOpacity>
+      </HeaderSection>
+      {deviceList.length == 0 ? renderDeviceNotExist() : renderDeviceExist()}
     </SafeAreaView>
   );
 }
@@ -83,6 +189,12 @@ const HeaderSection = styled.View`
 const ContainerSection = styled.View`
   flex: 1;
   justify-content: center;
+  align-items: center;
+`;
+
+const DeviceListSection = styled.View`
+  flex: 1;
+  justify-content: flex-start;
   align-items: center;
 `;
 

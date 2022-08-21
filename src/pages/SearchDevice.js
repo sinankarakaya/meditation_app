@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import {
   View,
   StatusBar,
@@ -6,81 +6,24 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
+import {scan} from 'react-native-ble-manager';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styled from 'styled-components';
-import {BleManager} from 'react-native-ble-plx';
+import {BluetoothContext} from '../provider/BluetoothProvider';
 
 function SearchDevice(props) {
-  const bleManager = new BleManager();
-  const [deviceList, setDeviceList] = useState([]);
-
-  useEffect(() => {
-    return () => {
-      bleManager.stopDeviceScan();
-      bleManager.destroy();
-    };
-  }, []);
+  const {startSearch, stopSearch, services, connectDevice, search, device} =
+    useContext(BluetoothContext);
 
   const scanStart = () => {
-    bleManager.startDeviceScan([], null, (error, device) => {
-      if (device?.name || device?.localName) {
-        let onNewDevice = {name: device.name ?? '', id: device.id ?? ''};
-        if (deviceList.indexOf(onNewDevice) < 0) {
-          let newDeviceList = JSON.parse(JSON.stringify(deviceList));
-          newDeviceList.push(onNewDevice);
-          setDeviceList(newDeviceList);
-        }
-        console.log('new DEVICE = ', onNewDevice);
-      }
-    });
+    startSearch();
   };
 
-  const scanStop = () => {
-    bleManager.stopDeviceScan();
-  };
-
-  const handleConnectDevice = item => {};
-
-  const connectDevice = item => {
-    Alert.alert('Warning', 'Connect to ' + item.name + ' ?', [
-      {text: 'Yes', onPress: () => handleConnectDevice(item)},
-      {text: 'No', onPress: () => console.log('cancel')},
-    ]);
-  };
-
-  const renderDevices = () => {
-    return deviceList.map(item => {
-      return (
-        <TouchableOpacity
-          onPress={() => connectDevice(item)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            flexDirection: 'row',
-            borderWidth: 1,
-            borderColor: '#fff',
-            borderRadius: 10,
-            padding: 10,
-          }}>
-          <View>
-            <Image
-              source={require('../images/bluetooth.png')}
-              style={{height: 48, width: 48}}
-            />
-          </View>
-          <View
-            style={{
-              marginLeft: 30,
-            }}>
-            <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 21}}>
-              {item.name}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      );
-    });
+  const connect = () => {
+    stopSearch();
+    connectDevice();
   };
 
   const renderDeviceExist = () => {
@@ -104,7 +47,7 @@ function SearchDevice(props) {
             Device List
           </Text>
           <TouchableOpacity
-            onPress={() => scanStop()}
+            onPress={() => scanStart()}
             style={{
               flexDirection: 'row',
               justifyContent: 'center',
@@ -116,20 +59,54 @@ function SearchDevice(props) {
                 fontWeight: '900',
                 marginLeft: 12,
               }}>
-              Stop Scan
+              Search Again
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View
-          style={{
-            marginTop: 16,
-            width: '100%',
-            paddingLeft: 10,
-            paddingRight: 10,
-          }}>
-          {renderDevices()}
-        </View>
+        <ContainerSection>
+          <TouchableOpacity onPress={() => connect()}>
+            {search ? (
+              <ActivityIndicator size="large" color="#ED1BA3" />
+            ) : (
+              <Image
+                source={require('../images/bluetooth.png')}
+                style={{height: 128, width: 128}}
+              />
+            )}
+          </TouchableOpacity>
+
+          {search ? (
+            <Text
+              style={{
+                color: '#ED1BA3',
+                fontSize: 24,
+                marginTop: 36,
+                fontWeight: '900',
+              }}>
+              Scanning
+            </Text>
+          ) : (
+            <Text
+              style={{
+                color: '#ED1BA3',
+                fontSize: 24,
+                marginTop: 36,
+                fontWeight: '900',
+              }}>
+              {services ? 'Connected' : 'Connect'} {device.name}
+            </Text>
+          )}
+          <Text
+            style={{
+              fontSize: 14,
+              color: '#E7E7E7',
+              fontWeight: '500',
+              marginTop: 12,
+            }}>
+            {services ? 'Paired' : 'Pair'} this device
+          </Text>
+        </ContainerSection>
       </DeviceListSection>
     );
   };
@@ -138,20 +115,37 @@ function SearchDevice(props) {
     return (
       <ContainerSection>
         <TouchableOpacity onPress={() => scanStart()}>
-          <Image
-            source={require('../images/searching.png')}
-            style={{height: 128, width: 128}}
-          />
+          {search ? (
+            <ActivityIndicator size="large" color="#ED1BA3" />
+          ) : (
+            <Image
+              source={require('../images/searching.png')}
+              style={{height: 128, width: 128}}
+            />
+          )}
         </TouchableOpacity>
-        <Text
-          style={{
-            color: '#ED1BA3',
-            fontSize: 24,
-            marginTop: 36,
-            fontWeight: '900',
-          }}>
-          Find Device
-        </Text>
+
+        {search ? (
+          <Text
+            style={{
+              color: '#ED1BA3',
+              fontSize: 24,
+              marginTop: 36,
+              fontWeight: '900',
+            }}>
+            Scanning
+          </Text>
+        ) : (
+          <Text
+            style={{
+              color: '#ED1BA3',
+              fontSize: 24,
+              marginTop: 36,
+              fontWeight: '900',
+            }}>
+            Start Scanning
+          </Text>
+        )}
         <Text
           style={{
             fontSize: 14,
@@ -165,6 +159,14 @@ function SearchDevice(props) {
     );
   };
 
+  const renderSearch = () => {
+    if (device) {
+      return renderDeviceExist();
+    } else {
+      return renderDeviceNotExist();
+    }
+  };
+
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: '#1A0938'}}>
       <StatusBar barStyle="light-content" />
@@ -174,7 +176,7 @@ function SearchDevice(props) {
           <Image source={require('../images/left.png')} />
         </TouchableOpacity>
       </HeaderSection>
-      {deviceList.length == 0 ? renderDeviceNotExist() : renderDeviceExist()}
+      {renderSearch()}
     </SafeAreaView>
   );
 }

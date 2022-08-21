@@ -1,9 +1,12 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {View, ScrollView, Text, Image, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import auth from '@react-native-firebase/auth';
+import {BluetoothContext} from '../provider/BluetoothProvider';
 
 function Main(props) {
+  const {device} = useContext(BluetoothContext);
+
   function logoutHandle() {
     auth()
       .signOut()
@@ -151,8 +154,9 @@ function Main(props) {
                 fontWeight: '500',
                 fontSize: 16,
                 marginTop: 16,
+                textAlign: 'center',
               }}>
-              Device Not Connected
+              {device ? ' Connected to ' + device.name : 'Device Not Connected'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

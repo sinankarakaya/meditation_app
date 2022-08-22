@@ -37,17 +37,37 @@ function History(props) {
       });
   }
 
+  function redirectResult(alfabetRatio, mean) {
+    props.navigation.push('Result', {alfabetRatio: alfabetRatio, mean: mean});
+  }
+
   function renderHistoryItem() {
     return history.map(item => {
+      let session = item._data.session;
       return (
         <TouchableOpacity
-          style={{display: 'flex', flexDirection: 'row', marginBottom: 30}}>
+          onPress={() =>
+            redirectResult(session.data.AlfaBetRatio, session.data.Mean)
+          }
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            marginBottom: 15,
+            borderWidth: 0.5,
+            borderColor: '#868688',
+            padding: 15,
+            borderRadius: 15,
+          }}>
           <View
             style={{
               flex: 0.2,
             }}>
             <Image
-              source={require('../images/time.png')}
+              source={
+                session.type === 'attention'
+                  ? require('../images/attention_result.png')
+                  : require('../images/stress_result.png')
+              }
               style={{height: 64, width: 64}}
             />
           </View>
@@ -57,8 +77,10 @@ function History(props) {
               marginLeft: 30,
               justifyContent: 'space-around',
             }}>
-            <Text style={{fontSize: 18, fontWeight: '500'}}>
-              Stress Activity
+            <Text style={{fontSize: 18, fontWeight: '500', color: '#868688'}}>
+              {session.type === 'attention'
+                ? 'Attention Activity'
+                : 'Stress Activity'}
             </Text>
             <Text style={{color: '#868688'}}>12:30 24.05.2022</Text>
           </View>

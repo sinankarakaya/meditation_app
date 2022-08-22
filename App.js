@@ -12,6 +12,7 @@ import SearchDevice from './src/pages/SearchDevice';
 import UserProvider from './src/provider/UserProvider';
 import BluetoothProvider from './src/provider/BluetoothProvider';
 import History from './src/pages/History';
+import Result from './src/pages/Result';
 
 function App(props) {
   const Stack = createNativeStackNavigator();
@@ -38,6 +39,7 @@ function App(props) {
                 />
                 <Stack.Screen name="SearchDevice" component={SearchDevice} />
                 <Stack.Screen name="History" component={History} />
+                <Stack.Screen name="Result" component={Result} />
               </Stack.Navigator>
             </NavigationContainer>
           </NativeBaseProvider>

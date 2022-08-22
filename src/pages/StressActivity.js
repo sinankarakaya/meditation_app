@@ -15,6 +15,7 @@ import PlayButton from '../component/PlayButton';
 import TrackPlayer, {useProgress} from 'react-native-track-player';
 import {UserContext} from '../provider/UserProvider';
 import firestore from '@react-native-firebase/firestore';
+import {BluetoothContext} from '../provider/BluetoothProvider';
 
 const track = {
   url: require('../music/piano.mp3'),
@@ -27,27 +28,54 @@ const track = {
 const session = {
   duration: 135,
   type: 'stress',
-  data: [
-    {id: 12, time: '123'},
-    {id: 12, time: '123'},
-    {id: 12, time: '123'},
-    {id: 12, time: '123'},
-    {id: 12, time: '123'},
-    {id: 12, time: '123'},
-  ],
+  data: {},
 };
 
 function StressActivity(props) {
+  const {data} = useContext(BluetoothContext);
+
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [fp2_f4, setFp2_f4] = useState([]);
+  const [f4_c4, setF4_c4] = useState([]);
+  const [c4_p4, setC4_p4] = useState([]);
+  const [p4_o2, setP4_o2] = useState([]);
+  const [t4_t6, setT4_t6] = useState([]);
+
   const progress = useProgress();
   const {user} = useContext(UserContext);
+
+  useEffect(() => {
+    let item = JSON.parse(data);
+    if (item != null) {
+      let _fp2_f4 = item['Fp2_F4'];
+      fp2_f4.push(_fp2_f4);
+      setFp2_f4(fp2_f4);
+
+      let _f4_c4 = item['F4_C4'];
+      f4_c4.push(_f4_c4);
+      setF4_c4(f4_c4);
+
+      let _c4_p4 = item['C4_P4'];
+      c4_p4.push(_c4_p4);
+      setC4_p4(c4_p4);
+
+      let _p4_o2 = item['P4_O2'];
+      p4_o2.push(_p4_o2);
+      setP4_o2(p4_o2);
+
+      let _t4_t6 = item['T4_T6'];
+      t4_t6.push(_t4_t6);
+      setT4_t6(t4_t6);
+    }
+  }, [data]);
 
   useEffect(() => {
     Alert.alert('Stress Activity', 'Start the session?', [
       {text: 'Yes', onPress: () => startSession()},
       {text: 'No', onPress: () => props.navigation.pop()},
     ]);
+
     return () => {
       stopSession();
     };
@@ -72,19 +100,44 @@ function StressActivity(props) {
   }
 
   function stopSession() {
-    uploadData();
     TrackPlayer.stop().then(() => {
       setPlaying(false);
     });
+    uploadData();
   }
 
-  function uploadData() {
-    const attentionCollection = firestore().collection('stressActivity');
-    attentionCollection
-      .add({user: user.uid, session: session, date: new Date()})
-      .then(() => {
-        console.log('data sended');
-      });
+  async function uploadData() {
+    var headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    var raw = {
+      Fp2_F4: fp2_f4,
+      F4_C4: f4_c4,
+      C4_P4: c4_p4,
+      P4_O2: p4_o2,
+      T4_T6: t4_t6,
+    };
+    raw = JSON.stringify(raw);
+    console.log(raw);
+
+    var requestOptions = {
+      method: 'POST',
+      headers: headers,
+      body: raw,
+    };
+
+    fetch('https://healthappturkey.herokuapp.com/healthapp/', requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        const attentionCollection = firestore().collection('stressActivity');
+        session.data = result;
+        attentionCollection
+          .add({user: user.uid, session: session, date: new Date()})
+          .then(() => {
+            console.log('data sended');
+          });
+      })
+      .catch(error => console.log('error', error));
   }
 
   function fancyTimeFormat(duration) {

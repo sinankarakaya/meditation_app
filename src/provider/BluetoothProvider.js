@@ -10,7 +10,7 @@ const actions = {
   SET_SERVICES: 'SET_SERVICES',
   SET_CHARACTERISTICS: 'SET_CHARACTERISTICS',
   SET_SEARCH: 'SET_SEARCH',
-  SET_LISTENER: 'SET_LISTENER',
+  SET_DATA: 'SET_DATA',
 };
 
 const initialState = {
@@ -19,7 +19,7 @@ const initialState = {
   services: null,
   characteristics: null,
   search: false,
-  listener: null,
+  data: null,
 };
 
 const reducer = (state, action) => {
@@ -44,9 +44,9 @@ const reducer = (state, action) => {
         search: action.payload,
       });
     }
-    case actions.SET_LISTENER: {
+    case actions.SET_DATA: {
       return Object.assign({}, state, {
-        listener: action.payload,
+        data: action.payload,
       });
     }
     default:
@@ -65,9 +65,9 @@ const BluetoothProvider = ({children}) => {
     services: state.services,
     characteristics: state.characteristics,
     search: state.search,
-    listener: state.listener,
-    setListener: listener => {
-      dispatch({type: actions.SET_LISTENER, payload: listener});
+    data: state.data,
+    setData: data => {
+      dispatch({type: actions.SET_DATA, payload: data});
     },
     setDevice: device => {
       dispatch({type: actions.SET_DEVICE, payload: device});
@@ -82,8 +82,10 @@ const BluetoothProvider = ({children}) => {
       dispatch({type: actions.SET_SEARCH, payload: true});
       state.manager.startDeviceScan([], null, (error, device) => {
         if (device) {
-          console.log(device.name);
-          if (device.name === 'Health' || device.name === 'raspberrypi') {
+          if (
+            device.name === 'Battery Service' ||
+            device.name === 'raspberrypi'
+          ) {
             state.manager.stopDeviceScan();
             dispatch({type: actions.SET_DEVICE, payload: device});
             dispatch({type: actions.SET_SEARCH, payload: false});
@@ -109,29 +111,15 @@ const BluetoothProvider = ({children}) => {
         .then(services => {
           services.map(async service => {
             var characteristics = await service.characteristics();
-            characteristics = characteristics.filter(
-              item => item.uuid == '00000002-710e-4a5b-8d75-3e5b444bc3cf',
-            );
-
             dispatch({
               type: actions.SET_CHARACTERISTICS,
               payload: characteristics,
             });
-
             for (let characteristic of characteristics) {
               characteristic.monitor((err, char) => {
-                if (err) {
-                  console.log(`characteristic error: ${err}`);
-                  console.log(JSON.stringify(err));
-                } else {
-                  if (
-                    char &&
-                    char.uuid === '00000002-710e-4a5b-8d75-3e5b444bc3cf'
-                  ) {
-                    const data = base64.decode(char?.value);
-                    console.log(data);
-                    //state.listener(char?.value);
-                  }
+                if (char) {
+                  const data = base64.decode(char?.value);
+                  dispatch({type: actions.SET_DATA, payload: data});
                 }
               });
             }
